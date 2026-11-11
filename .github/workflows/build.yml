@@ -22,9 +22,11 @@ jobs:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
         run: |
           if [ -z "$KEYSTORE_B64" ]; then
-            echo "FALTA o secret KEYSTORE_B64 (assinatura fixa)" | tee build.log
-            exit 1
+            echo "AVISO: falta o secret KEYSTORE_B64 — compila mas NÃO publica o APK"
+            echo "PUBLISH=no" >> "$GITHUB_ENV"
+            exit 0
           fi
+          echo "PUBLISH=yes" >> "$GITHUB_ENV"
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/daikin.jks"
           echo "KEYSTORE_FILE=$RUNNER_TEMP/daikin.jks" >> "$GITHUB_ENV"
       - name: Testes do OCR + compilar APK
@@ -47,6 +49,7 @@ jobs:
           git commit -q -m "log ${GITHUB_SHA} run ${GITHUB_RUN_NUMBER}"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" log
       - name: Publicar APK + version.json (branch "apk")
+        if: env.PUBLISH == 'yes'
         run: |
           mkdir out
           cp app/build/outputs/apk/debug/app-debug.apk out/daikin-ocr.apk
