@@ -18,7 +18,23 @@ android {
     }
 
 
+    // Assinatura fixa (necessária para atualizar por cima). Vem dos "secrets" do GitHub no CI.
+    val ksFile = System.getenv("KEYSTORE_FILE")
+    if (ksFile != null && file(ksFile).exists()) {
+        signingConfigs {
+            create("fixa") {
+                storeFile = file(ksFile)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = "daikin"
+                keyPassword = System.getenv("KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
+        getByName("debug") {
+            signingConfigs.findByName("fixa")?.let { signingConfig = it }
+        }
         getByName("release") {
             isMinifyEnabled = false
         }

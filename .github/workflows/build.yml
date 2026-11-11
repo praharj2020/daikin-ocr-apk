@@ -17,7 +17,19 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '8.9'
+      - name: Chave de assinatura fixa
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "FALTA o secret KEYSTORE_B64 (assinatura fixa)" | tee build.log
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/daikin.jks"
+          echo "KEYSTORE_FILE=$RUNNER_TEMP/daikin.jks" >> "$GITHUB_ENV"
       - name: Testes do OCR + compilar APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
           set -o pipefail
           gradle :app:testDebugUnitTest :app:assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
@@ -34,14 +46,17 @@ jobs:
           git add -A
           git commit -q -m "log ${GITHUB_SHA} run ${GITHUB_RUN_NUMBER}"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" log
-      - name: Publicar APK (branch "apk")
+      - name: Publicar APK + version.json (branch "apk")
         run: |
           mkdir out
           cp app/build/outputs/apk/debug/app-debug.apk out/daikin-ocr.apk
+          cat > out/version.json <<JSON
+          {"versionCode": ${GITHUB_RUN_NUMBER}, "versionName": "1.0.${GITHUB_RUN_NUMBER}", "apk": "https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/apk/daikin-ocr.apk"}
+          JSON
           cd out
           git init -q -b apk
           git config user.email "ci@github"
           git config user.name "ci"
-          git add daikin-ocr.apk
+          git add daikin-ocr.apk version.json
           git commit -q -m "APK ${GITHUB_SHA} (run ${GITHUB_RUN_NUMBER})"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" apk

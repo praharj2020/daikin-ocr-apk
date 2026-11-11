@@ -27,6 +27,22 @@ class Prefs(ctx: Context) {
         }
         set(v) = p.edit().putString("roi", v?.joinToString(",")).apply()
 
+    var geminiKey: String
+        get() = p.getString("gemini_key", "") ?: ""
+        set(v) = p.edit().putString("gemini_key", v.trim()).apply()
+
+    var geminiModel: String
+        get() = p.getString("gemini_model", null)?.takeIf { it.isNotBlank() } ?: "gemini-flash-lite-latest"
+        set(v) = p.edit().putString("gemini_model", v.trim()).apply()
+
+    var lastNeededFlash: Boolean
+        get() = p.getBoolean("last_flash", false)
+        set(v) = p.edit().putBoolean("last_flash", v).apply()
+
+    var lastUpdateCheck: Long
+        get() = p.getLong("last_update_check", 0L)
+        set(v) = p.edit().putLong("last_update_check", v).apply()
+
     var running: Boolean
         get() = p.getBoolean("running", false)
         set(v) = p.edit().putBoolean("running", v).apply()

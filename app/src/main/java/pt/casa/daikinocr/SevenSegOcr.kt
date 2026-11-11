@@ -127,8 +127,9 @@ object SevenSegOcr {
             for (y in ra until rb) if (mask[y * W + x]) c++
             colProf[x] = c
         }
-        val cr = runs(colProf, maxOf(2, bh / 25), maxOf(1, bh / 40))
-        val blobs = ArrayList<IntArray>() // a, b, ya, yb (ya/yb absolutos)
+        val cr = runs(colProf, maxOf(2, bh / 25), 0)
+        // peças de colunas; ignora pontos pequenos (ex.: "°")
+        val pieces = ArrayList<IntArray>() // a, b, ya, yb
         for (c in cr) {
             val a = c[0]
             val b = c[1]
@@ -143,9 +144,22 @@ object SevenSegOcr {
                 }
             }
             if (first < 0) continue
-            val hh = last - first + 1
-            if (hh >= 0.6 * bh) blobs.add(intArrayOf(a, b, first, last + 1))
+            val pw = b - a
+            val ph = last + 1 - first
+            if (pw < 0.18 * bh && ph < 0.18 * bh) continue
+            pieces.add(intArrayOf(a, b, first, last + 1))
         }
+        // junta segmentos do mesmo dígito separados por intervalos pequenos (ex.: topo do "7")
+        val groups = ArrayList<IntArray>()
+        for (p in pieces) {
+            val g = groups.lastOrNull()
+            if (g != null && p[0] - g[1] <= 0.18 * bh) {
+                g[1] = p[1]; g[2] = minOf(g[2], p[2]); g[3] = maxOf(g[3], p[3])
+            } else {
+                groups.add(p.copyOf())
+            }
+        }
+        val blobs = groups.filter { it[3] - it[2] >= 0.6 * bh }
         if (blobs.size < ndig) return null
 
         var wref = 0

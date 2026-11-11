@@ -41,6 +41,9 @@ class CaptureService : Service() {
 
     private val loop = object : Runnable {
         override fun run() {
+            if (System.currentTimeMillis() - prefs.lastUpdateCheck > 6 * 3600_000L) {
+                try { Updater.checkAndInstall(this@CaptureService) } catch (_: Exception) {}
+            }
             val status = engine.runCycle()
             updateNotification(status)
             handler?.postDelayed(this, prefs.intervalMin * 60_000L)

@@ -17,6 +17,12 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp" />
+
+        <TextView
             android:id="@+id/status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -150,6 +156,30 @@
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chave Google Gemini (aistudio.google.com/apikey)" />
+
+        <EditText
+            android:id="@+id/geminiKey"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Modelo Gemini" />
+
+        <EditText
+            android:id="@+id/geminiModel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/btnSave"

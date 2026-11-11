@@ -28,6 +28,9 @@ class MainActivity : Activity() {
     private lateinit var url: EditText
     private lateinit var interval: EditText
     private lateinit var zoom: EditText
+    private lateinit var geminiKey: EditText
+    private lateinit var geminiModel: EditText
+    private lateinit var version: TextView
     private var calibFrame: GrayFrame? = null
     private val ui = Handler(Looper.getMainLooper())
 
@@ -51,6 +54,12 @@ class MainActivity : Activity() {
         url = findViewById(R.id.url)
         interval = findViewById(R.id.interval)
         zoom = findViewById(R.id.zoom)
+        geminiKey = findViewById(R.id.geminiKey)
+        geminiModel = findViewById(R.id.geminiModel)
+        version = findViewById(R.id.version)
+        geminiKey.setText(prefs.geminiKey)
+        geminiModel.setText(prefs.geminiModel)
+        version.text = "Versão ${BuildConfig.VERSION_NAME}"
 
         url.setText(prefs.webhookUrl)
         interval.setText(prefs.intervalMin.toString())
@@ -90,6 +99,25 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         ui.post(refresher)
+        checkUpdate()
+    }
+
+    /** A cada abertura: procura versão nova e instala. */
+    private fun checkUpdate() {
+        Thread {
+            val r = Updater.fetchRemote()
+            if (r != null && r.code > BuildConfig.VERSION_CODE && Build.VERSION.SDK_INT >= 26 &&
+                !packageManager.canRequestPackageInstalls()) {
+                runOnUiThread {
+                    version.text = "Versão ${BuildConfig.VERSION_NAME} — nova ${r.name} disponível: autorize a instalação"
+                    toast("Autorize 'Instalar apps desconhecidas' para atualizar")
+                    startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+                }
+                return@Thread
+            }
+            val st = Updater.checkAndInstall(this)
+            runOnUiThread { version.text = st }
+        }.start()
     }
 
     override fun onPause() {
@@ -109,6 +137,8 @@ class MainActivity : Activity() {
         prefs.webhookUrl = url.text.toString()
         prefs.intervalMin = interval.text.toString().toIntOrNull() ?: 10
         prefs.zoom = zoom.text.toString().replace(',', '.').toFloatOrNull() ?: 1f
+        prefs.geminiKey = geminiKey.text.toString()
+        prefs.geminiModel = geminiModel.text.toString()
         toast("Definições guardadas")
     }
 
@@ -121,7 +151,7 @@ class MainActivity : Activity() {
         Thread {
             try {
                 val frames = synchronized(Engine.lock) {
-                    CameraGrabber(this).grab(flash, count = 1, zoom = prefs.zoom)
+                    CameraGrabber(this).grab(flash, count = 1, zoom = prefs.zoom, roi = prefs.roi)
                 }
                 val f = frames.firstOrNull() ?: throw IllegalStateException("sem imagem")
                 calibFrame = f
@@ -146,8 +176,20 @@ class MainActivity : Activity() {
         }
         val roi = engine.roiFor(f) ?: return
         val r = SevenSegOcr.read(f.data, f.width, f.height, roi)
-        calibResult.text = if (r.value != null) "Leitura: ${r.value} °C ✔ — área guardada." else
-            "Não consegui ler (votos ${r.votes}). Ajuste a caixa ou tire nova foto."
+        val local = if (r.value != null) "${r.value} °C" else "não leu"
+        calibResult.text = "Área guardada. Local: $local" + if (prefs.geminiKey.isNotBlank()) " · Gemini: a ler…" else ""
+        if (prefs.geminiKey.isBlank()) return
+        Thread {
+            val crop = engine.cropBitmap(f)
+            val g = if (crop != null) GeminiReader.read(crop, prefs.geminiKey, prefs.geminiModel) else null
+            val gtxt = when {
+                g == null -> "sem recorte"
+                g.value != null -> "${g.value} °C ✔"
+                g.error != null -> "erro: ${g.error}"
+                else -> "não leu (${g.raw.take(20)})"
+            }
+            runOnUiThread { calibResult.text = "Área guardada. Local: $local · Gemini: $gtxt" }
+        }.start()
     }
 
     private fun askPermissions() {
