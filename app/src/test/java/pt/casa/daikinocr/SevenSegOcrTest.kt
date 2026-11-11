@@ -4,16 +4,24 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Random
-import javax.imageio.ImageIO
 
 class SevenSegOcrTest {
 
+    /** Lê PGM binário (P5) com a luminância das fotos reais. */
     private fun load(name: String): Triple<ByteArray, Int, Int> {
-        val img = ImageIO.read(javaClass.classLoader!!.getResourceAsStream(name))
-        val w = img.width
-        val h = img.height
-        val rgb = img.getRGB(0, 0, w, h, null, 0, w)
-        return Triple(SevenSegOcr.lumaFromRgb(rgb), w, h)
+        val bytes = javaClass.classLoader!!.getResourceAsStream(name.replace(".jpg", ".pgm"))!!.readBytes()
+        var pos = 0
+        val tokens = ArrayList<String>()
+        while (tokens.size < 4) {
+            val sb = StringBuilder()
+            while (bytes[pos].toInt().toChar().isWhitespace()) pos++
+            while (!bytes[pos].toInt().toChar().isWhitespace()) { sb.append(bytes[pos].toInt().toChar()); pos++ }
+            tokens.add(sb.toString())
+        }
+        pos++ // um espaço após o 255
+        val w = tokens[1].toInt()
+        val h = tokens[2].toInt()
+        return Triple(bytes.copyOfRange(pos, pos + w * h), w, h)
     }
 
     private val rois = mapOf(
