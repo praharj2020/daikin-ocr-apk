@@ -44,9 +44,12 @@ class CaptureService : Service() {
             if (System.currentTimeMillis() - prefs.lastUpdateCheck > 6 * 3600_000L) {
                 try { Updater.checkAndInstall(this@CaptureService) } catch (_: Exception) {}
             }
+            val started = System.currentTimeMillis()
+            updateNotification("A preparar tomadas e fotografar…")
             val status = engine.runCycle()
             updateNotification(status)
-            handler?.postDelayed(this, prefs.intervalMin * 60_000L)
+            val wait = prefs.intervalMin * 60_000L - (System.currentTimeMillis() - started)
+            handler?.postDelayed(this, wait.coerceAtLeast(60_000L))
         }
     }
 

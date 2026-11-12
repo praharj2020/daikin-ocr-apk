@@ -84,7 +84,7 @@ class MainActivity : Activity() {
         findViewById<Button>(R.id.btnNow).setOnClickListener {
             if (prefs.roi == null) { toast("Primeiro marque a área dos números na foto."); return@setOnClickListener }
             CaptureService.start(this, CaptureService.ACTION_NOW)
-            toast("A fotografar e enviar…")
+            toast("A ligar as tomadas; foto daqui a 1 minuto…")
         }
         findViewById<Button>(R.id.btnStop).setOnClickListener {
             prefs.running = false

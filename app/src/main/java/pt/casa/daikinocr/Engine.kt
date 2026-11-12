@@ -23,6 +23,7 @@ class Engine(private val ctx: Context) {
         private const val MIN_OK = 5
         private const val MAX_OK = 85
         private const val MAX_JUMP = 20
+        private const val PREPARE_MS = 60_000L
         val lock = Any()
     }
 
@@ -132,27 +133,33 @@ class Engine(private val ctx: Context) {
     }
 
     fun runCycle(): String = synchronized(lock) {
+        // 1 min antes da foto: o Home Assistant liga as tomadas (Medidor_TV e Bomba_Calor)
+        val prepared = postJson("""{"acao": "preparar", "origem": "daikin-ocr-android"}""")
+        Thread.sleep(PREPARE_MS)
         val time = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date())
-        val status: String = try {
+        val base: String = try {
             val r = capture()
             r.frame?.let { saveFrame(it); saveToGallery(it, r.value) }
             if (r.value == null) {
+                postJson("""{"acao": "concluido", "origem": "daikin-ocr-android"}""")
                 "$time  sem leitura (${r.detail})"
             } else {
                 prefs.lastValue = r.value
-                val sent = send(r.value, r.flash, r.source)
+                val sent = postJson("""{"acao": "concluido", "temperatura": ${r.value}, "flash": ${r.flash}, "fonte": "${r.source}", "origem": "daikin-ocr-android"}""")
                 "$time  ${r.value}°C [${r.source}]${if (r.flash) " flash" else ""} → ${if (sent) "enviado" else "ERRO envio"}"
             }
         } catch (e: Exception) {
             Log.e(TAG, "ciclo falhou", e)
+            postJson("""{"acao": "concluido", "origem": "daikin-ocr-android"}""")
             "$time  erro: ${e.message}"
         }
+        val status = base + if (prepared) "" else " (tomadas: HA não respondeu)"
         prefs.lastStatus = status
         prefs.addHistory(status)
         status
     }
 
-    fun send(value: Int, flash: Boolean, source: String): Boolean {
+    fun postJson(body: String): Boolean {
         val url = prefs.webhookUrl
         if (url.isBlank()) return false
         repeat(3) { attempt ->
@@ -163,7 +170,6 @@ class Engine(private val ctx: Context) {
                 c.readTimeout = 15000
                 c.doOutput = true
                 c.setRequestProperty("Content-Type", "application/json")
-                val body = """{"temperatura": $value, "flash": $flash, "fonte": "$source", "origem": "daikin-ocr-android"}"""
                 c.outputStream.use { it.write(body.toByteArray()) }
                 val code = c.responseCode
                 c.disconnect()

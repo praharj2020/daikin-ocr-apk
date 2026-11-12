@@ -11,8 +11,8 @@ class Prefs(ctx: Context) {
         set(v) = p.edit().putString("webhook", v.trim()).apply()
 
     var intervalMin: Int
-        get() = p.getInt("interval", 10)
-        set(v) = p.edit().putInt("interval", v.coerceIn(1, 240)).apply()
+        get() = p.getInt("interval_min_v2", 30)
+        set(v) = p.edit().putInt("interval_min_v2", v.coerceIn(2, 240)).apply()
 
     var zoom: Float
         get() = p.getFloat("zoom", 1f)
