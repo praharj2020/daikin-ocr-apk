@@ -23,7 +23,7 @@ class Engine(private val ctx: Context) {
         private const val MIN_OK = 5
         private const val MAX_OK = 85
         private const val MAX_JUMP = 20
-        private const val PREPARE_MS = 60_000L
+        private const val PREPARE_MS = 30_000L
         val lock = Any()
     }
 
