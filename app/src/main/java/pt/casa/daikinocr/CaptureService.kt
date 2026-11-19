@@ -48,7 +48,7 @@ class CaptureService : Service() {
             updateNotification("A preparar tomadas e fotografar…")
             val status = engine.runCycle()
             updateNotification(status)
-            val wait = prefs.intervalMin * 60_000L - (System.currentTimeMillis() - started)
+            val wait = Schedule.nextAt(started, prefs.intervalMin) - System.currentTimeMillis()
             handler?.postDelayed(this, wait.coerceAtLeast(60_000L))
         }
     }
@@ -132,7 +132,7 @@ class CaptureService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return Notification.Builder(this, CHANNEL)
-            .setContentTitle("Daikin OCR — a cada ${prefs.intervalMin} min")
+            .setContentTitle("Daikin OCR — ${Schedule.label(prefs.intervalMin)}")
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .setOngoing(true)

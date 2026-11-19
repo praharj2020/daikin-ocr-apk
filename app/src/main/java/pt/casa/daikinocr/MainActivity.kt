@@ -128,7 +128,7 @@ class MainActivity : Activity() {
     private fun refresh() {
         val pm = getSystemService(PowerManager::class.java)
         val bat = if (pm.isIgnoringBatteryOptimizations(packageName)) "sem restrição ✔" else "RESTRITA ✖ (toque no botão Bateria)"
-        status.text = "Estado: ${if (prefs.running) "A MONITORIZAR a cada ${prefs.intervalMin} min" else "parado"}\n" +
+        status.text = "Estado: ${if (prefs.running) "A MONITORIZAR ${Schedule.label(prefs.intervalMin)}" else "parado"}\n" +
             "Última: ${prefs.lastStatus}\nBateria: $bat"
         history.text = prefs.history
     }
