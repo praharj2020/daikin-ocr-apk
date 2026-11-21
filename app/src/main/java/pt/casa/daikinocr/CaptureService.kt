@@ -38,6 +38,7 @@ class CaptureService : Service() {
     private var worker: HandlerThread? = null
     private var handler: Handler? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var nextRegular = 0L
 
     private val loop = object : Runnable {
         override fun run() {
@@ -45,10 +46,12 @@ class CaptureService : Service() {
                 try { Updater.checkAndInstall(this@CaptureService) } catch (_: Exception) {}
             }
             val started = System.currentTimeMillis()
-            updateNotification("A preparar tomadas e fotografar…")
-            val status = engine.runCycle()
+            val quick = nextRegular > 0 && started < nextRegular - 60_000L
+            updateNotification(if (quick) "Foto rápida (só se a bomba estiver ligada)…" else "A preparar tomadas e fotografar…")
+            val status = engine.runCycle(quick)
             updateNotification(status)
-            val wait = Schedule.nextAt(started, prefs.intervalMin) - System.currentTimeMillis()
+            if (!quick) nextRegular = Schedule.nextAt(started, prefs.intervalMin)
+            val wait = Schedule.nextWake(System.currentTimeMillis(), nextRegular) - System.currentTimeMillis()
             handler?.postDelayed(this, wait.coerceAtLeast(60_000L))
         }
     }
@@ -85,6 +88,7 @@ class CaptureService : Service() {
                     }.start()
                 } else {
                     handler?.removeCallbacks(loop)
+                    nextRegular = 0L
                     handler?.post(loop)
                 }
             }

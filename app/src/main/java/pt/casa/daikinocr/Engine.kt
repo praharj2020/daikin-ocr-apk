@@ -132,21 +132,23 @@ class Engine(private val ctx: Context) {
         return r
     }
 
-    fun runCycle(): String = synchronized(lock) {
-        // 1 min antes da foto: o Home Assistant liga as tomadas (Medidor_TV e Bomba_Calor)
-        val prepared = postJson("""{"acao": "preparar", "origem": "daikin-ocr-android"}""")
+    fun runCycle(quick: Boolean = false): String = synchronized(lock) {
+        // antes da foto: o Home Assistant liga as tomadas (Medidor_TV e Bomba_Calor).
+        // Foto rápida (07:01–08:49): o HA só liga a luz se a bomba já estiver ligada.
+        val acao = if (quick) "preparar_se_bomba" else "preparar"
+        val prepared = postJson("""{"acao": "$acao", "origem": "daikin-ocr-android"}""")
         Thread.sleep(PREPARE_MS)
         val time = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date())
         val base: String = try {
             val r = capture()
-            r.frame?.let { saveFrame(it); saveToGallery(it, r.value) }
+            r.frame?.let { saveFrame(it); if (!quick || r.value != null) saveToGallery(it, r.value) }
             if (r.value == null) {
                 postJson("""{"acao": "concluido", "origem": "daikin-ocr-android"}""")
-                "$time  sem leitura (${r.detail})"
+                if (quick) "$time  rápida: sem leitura (bomba desligada?)" else "$time  sem leitura (${r.detail})"
             } else {
                 prefs.lastValue = r.value
                 val sent = postJson("""{"acao": "concluido", "temperatura": ${r.value}, "flash": ${r.flash}, "fonte": "${r.source}", "origem": "daikin-ocr-android"}""")
-                "$time  ${r.value}°C [${r.source}]${if (r.flash) " flash" else ""} → ${if (sent) "enviado" else "ERRO envio"}"
+                "$time  ${if (quick) "rápida " else ""}${r.value}°C [${r.source}]${if (r.flash) " flash" else ""} → ${if (sent) "enviado" else "ERRO envio"}"
             }
         } catch (e: Exception) {
             Log.e(TAG, "ciclo falhou", e)

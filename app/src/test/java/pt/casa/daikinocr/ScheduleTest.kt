@@ -17,4 +17,11 @@ class ScheduleTest {
     @Test fun fimDaNoite() { assertEquals("06:00", hm(Schedule.nextAt(at(4, 30), 50))) }
     @Test fun depoisDas6() { assertEquals("06:50", hm(Schedule.nextAt(at(6, 0), 50))) }
     @Test fun meiaNoite() { assertEquals("00:50", hm(Schedule.nextAt(at(0, 0), 50))) }
+
+    @Test fun rapidaNaJanela() { assertEquals("07:20", hm(Schedule.nextWake(at(7, 10), at(7, 50)))) }
+    @Test fun rapidaAntesDaNormal() { assertEquals("07:50", hm(Schedule.nextWake(at(7, 45), at(7, 50)))) }
+    @Test fun foraDaJanela() { assertEquals("07:50", hm(Schedule.nextWake(at(6, 55), at(7, 50)))) }
+    @Test fun inicioJanela() { assertEquals("07:01", hm(Schedule.nextWake(at(6, 51), at(7, 41)))) }
+    @Test fun fimJanela() { assertEquals("09:30", hm(Schedule.nextWake(at(8, 45), at(9, 30)))) }
+    @Test fun ultimaRapida() { assertEquals("08:49", hm(Schedule.nextWake(at(8, 39), at(9, 30)))) }
 }

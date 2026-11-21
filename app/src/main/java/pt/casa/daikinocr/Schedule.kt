@@ -29,5 +29,22 @@ object Schedule {
         return minOf(next, end)
     }
 
-    fun label(dayMin: Int) = "a cada $dayMin min (00:01–06:00: 2 h)"
+    /** 07:01–08:49: fotos extra de 10 em 10 min, só se a bomba já estiver ligada (o HA decide). */
+    const val QUICK_MIN = 10
+    private const val QUICK_START = 7 * 60 + 1   // 07:01
+    private const val QUICK_END = 8 * 60 + 49    // 08:49 (inclusive)
+
+    fun isQuick(ms: Long): Boolean {
+        val c = Calendar.getInstance().apply { timeInMillis = ms }
+        val m = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE)
+        return m in QUICK_START..QUICK_END
+    }
+
+    /** Próximo acordar: a foto normal ou, dentro da janela 07:01–08:49, a próxima foto rápida (se vier antes). */
+    fun nextWake(nowMs: Long, nextRegularMs: Long): Long {
+        val q = nowMs + QUICK_MIN * 60_000L
+        return if (q < nextRegularMs - 60_000L && isQuick(q)) q else nextRegularMs
+    }
+
+    fun label(dayMin: Int) = "a cada $dayMin min (00:01–06:00: 2 h; 07:01–08:49: 10 min se a bomba estiver ligada)"
 }
