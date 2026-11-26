@@ -5,7 +5,7 @@ import java.util.Calendar
 /**
  * Horário das fotos:
  *  - 23:30 → 06:09: de 2 em 2 horas (a última da noite às 06:09);
- *  - 06:11 → 08:31: fotos extra de 10 em 10 min, só se a bomba já estiver ligada (o HA decide);
+ *  - 05:51 → 08:19: fotos extra de 10 em 10 min, só se a bomba já estiver ligada (o HA decide);
  *  - resto do dia: a cada [dayMin] minutos.
  */
 object Schedule {
@@ -14,8 +14,8 @@ object Schedule {
     private const val NIGHT_LAST = 6 * 60 + 9     // 06:09 (inclusive)
 
     const val QUICK_MIN = 10
-    private const val QUICK_START = 6 * 60 + 11   // 06:11
-    private const val QUICK_END = 8 * 60 + 31     // 08:31 (inclusive)
+    private const val QUICK_START = 5 * 60 + 51   // 05:51
+    private const val QUICK_END = 8 * 60 + 19     // 08:19 (inclusive)
 
     private fun minuteOfDay(ms: Long): Int {
         val c = Calendar.getInstance().apply { timeInMillis = ms }
@@ -42,11 +42,11 @@ object Schedule {
         return if (end > startedMs) minOf(next, end) else startedMs + dayMin * 60_000L
     }
 
-    /** Próximo acordar: a foto normal ou, dentro da janela 06:11–08:31, a próxima foto rápida (se vier antes). */
+    /** Próximo acordar: a foto normal ou, dentro da janela 05:51–08:19, a próxima foto rápida (se vier antes). */
     fun nextWake(nowMs: Long, nextRegularMs: Long): Long {
         val q = nowMs + QUICK_MIN * 60_000L
         return if (q < nextRegularMs - 60_000L && isQuick(q)) q else nextRegularMs
     }
 
-    fun label(dayMin: Int) = "a cada $dayMin min (23:30–06:09: 2 h; 06:11–08:31: 10 min se a bomba estiver ligada)"
+    fun label(dayMin: Int) = "a cada $dayMin min (23:30–06:09: 2 h; 05:51–08:19: 10 min se a bomba estiver ligada)"
 }
