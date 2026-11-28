@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="pt.casa.daikinocr.SevenSegOcrTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-28T11:25:36" hostname="runnervm3lb7s" time="0.864">
+  <properties/>
+  <testcase name="leTresIluminacoes" classname="pt.casa.daikinocr.SevenSegOcrTest" time="0.071"/>
+  <testcase name="nuncaLeErradoComCaixaImprecisa" classname="pt.casa.daikinocr.SevenSegOcrTest" time="0.189"/>
+  <testcase name="segmentosSeparadosNaoViram1" classname="pt.casa.daikinocr.SevenSegOcrTest" time="0.603"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

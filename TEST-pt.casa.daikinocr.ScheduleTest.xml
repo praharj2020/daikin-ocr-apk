@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="pt.casa.daikinocr.ScheduleTest" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-11-28T11:25:36" hostname="runnervm3lb7s" time="0.012">
+  <properties/>
+  <testcase name="rapidaTarde" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="ultimaRapida" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="fimJanela" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="inicioJanela" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="foraDaJanela" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="ultimaRapidaTarde" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="dia50" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="depois1645" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="rapidaAntesDaNormal" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="fimDaNoite" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="foto1645" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="rapidaNaJanela" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="inicioRapidaTarde" classname="pt.casa.daikinocr.ScheduleTest" time="0.0"/>
+  <testcase name="depoisDaNoite" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="antesDaNoite" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="inicioNoite" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <testcase name="noite2h" classname="pt.casa.daikinocr.ScheduleTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
